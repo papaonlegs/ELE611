@@ -22,9 +22,9 @@ public class tubeSearch
 
 			System.out.println( "BFS Result:\n" + tubeMap.routeString( result.pathSoFar ) + "at cost " + result.costSoFar + "\nExpanded " + agenda.expansionSteps + " nodes.\n========\n" ); // output results
 
-			result = agenda.ucs( args[0], args[1] );		// call the bfs method
+			//result = agenda.ucs( args[0], args[1] );		// call the bfs method
 
-			System.out.println( "UCS Result:\n" + tubeMap.routeString( result.pathSoFar ) + "at cost " + result.costSoFar+ "\nExpanded " + agenda.expansionSteps + " nodes.\n========\n"  ); // output results
+			//System.out.println( "UCS Result:\n" + tubeMap.routeString( result.pathSoFar ) + "at cost " + result.costSoFar+ "\nExpanded " + agenda.expansionSteps + " nodes.\n========\n"  ); // output results
 
 			result = agenda.dfs( args[0], args[1] );		// call the ucs method
 
