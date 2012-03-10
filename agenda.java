@@ -36,11 +36,24 @@ public class agenda<World extends searchWorld<String,opPair>>
 										// don't forget to update expansionSteps.
 										
 	private Vector<agendaState> expand( agendaState currentState){
-		tubeMap tubemap = new tubeMap();
+	
 		Vector<agendaState> expandedStates = new Vector<agendaState>( 0, 0);
-		Vector<opPair> operators = tubemap.operators(currentState.currentNode);
-		for(opPair operator : operators)
-			expandedStates.add(new agendaState(operator.destination, tubemap.cost(currentState.currentNode, operator.destination), tubemap.operators(operator.destination)));
+		
+		for(opPair operator : worldDescription.operators(currentState.currentNode)){
+			Vector<opPair> path = new Vector<opPair>( 0, 0);
+			
+			for(opPair paths : currentState.pathSoFar)
+				path.add(paths);
+				
+			path.add(operator);
+			
+			expandedStates.add(new agendaState(
+										operator.destination, 
+										currentState.costSoFar + worldDescription.cost(currentState.currentNode, operator.destination), 
+										path
+										));
+		}
+			
 		expansionSteps++;
 		return expandedStates;
 	}
@@ -51,47 +64,40 @@ public class agenda<World extends searchWorld<String,opPair>>
 										// Use the specification in the lecture notes.
 										
 	public agendaState dfs( String start, String goal ){
-		tubeMap tubeMap = new tubeMap();
-		agenda<tubeMap> agend = new agenda<tubeMap>(tubeMap);
+	
 		Vector<String> visited = new Vector<String>(0,0);
-		Stack stack = new Stack();
 		agendaState position = new agendaState(start);
+		
 		agenda.add(position);
-		stack.push(position);
 		visited.add(position.currentNode);
-		if(agenda.contains(position)) System.out.println("contains works");
-		//System.out.println(position.currentNode);
-		while(!stack.isEmpty()){
-			position = (agendaState) stack.peek();
-			if (position.currentNode.equals(goal)){ return position; }
-			Vector<agendaState> possibilities = agend.expand(position);
+		
+		while(!agenda.isEmpty()){
+		
+			position = (agendaState) agenda.lastElement();
+			
+			if(position.currentNode.equals(goal))return position;
+			
+			Vector<agendaState> possibilities = expand(position);
+			
 			for(agendaState possibility : possibilities){
-				//agendaState pos = new agendaState(possibility.currentNode, possibility.costSoFar, possibility.pathSoFar);
 				if(visited.contains( possibility.currentNode)){ 
-				//System.out.println("null!");
-				position = null; 
-				continue;
+					position = null; 
+					continue;
 				}else {
-				//System.out.println("not in list!" + possibility.currentNode);
-				//stack.push(position);
-				position = possibility; 
-				break;
+					position = possibility; 
+					break;
 				}
 			}
-			//System.out.println(position.currentNode);
-			//System.out.println("Vecky :" +agenda.lastElement().currentNode);
+			
 			if (position == null){
-				stack.pop();
-				//System.out.println("pop!" + position.currentNode);
+				agenda.remove(agenda.lastElement());
 			}else{
-				//System.out.println(position.currentNode);
-				stack.push(position);
 				agenda.add(position);
 				visited.add(position.currentNode);
 			}
+			
 		}
 
-		//Vector<agendaState> next = agenda.expand(beginning);
 		return null;
 	}
 
@@ -100,32 +106,33 @@ public class agenda<World extends searchWorld<String,opPair>>
 										// into the agenda at the appropriate place
 										
 	public agendaState bfs(String start, String goal){
-		tubeMap tubeMap = new tubeMap();
-		agenda<tubeMap> agend = new agenda<tubeMap>(tubeMap);
+		
+		agenda = new Vector<agendaState>( 0, 0);
 		Vector<String> visited = new Vector<String>(0,0);
-		Vector<agendaState> possibilities = new Vector<agendaState>(0,0);
 		agendaState position = new agendaState(start);
+		
 		agenda.add(position);
-		possibilities.add(position);
 		visited.add(position.currentNode);
-		while(possibilities != null){
-			Vector<agendaState> temps = possibilities;
-			possibilities = new Vector<agendaState>(0,0);
+		
+		while(agenda != null){
+		
+			Vector<agendaState> temps = agenda;
+			agenda = new Vector<agendaState>(0,0);
+			
 			for(agendaState temp : temps){
-			//System.out.println("First loop:"+temp.currentNode);
-				for (agendaState possibility : agend.expand(temp)){
-					//System.out.println("Second loop:"+ possibility.currentNode);
-					if (possibility.currentNode.equals(goal)){ return possibility; }
-					if (visited.contains( possibility.currentNode)){
-					continue;
+				for (agendaState possibility : expand(temp)){
+				
+					if(possibility.currentNode.equals(goal)) return possibility;
+					
+					if(visited.contains( possibility.currentNode)){
+						continue;
 					}else{
 						visited.add(possibility.currentNode);
-						agenda.add(position);
-						possibilities.add(possibility);
+						agenda.add(possibility);
 					}
+					
 				}
 			}
-			//System.out.println("Vecky :" +agenda.lastElement().currentNode);
 		}
 		
 		return null;
@@ -135,6 +142,142 @@ public class agenda<World extends searchWorld<String,opPair>>
 	// public agendaState ucs( String start, String goal )			// use the expand method to compute the
 										// next possible states and insert them
 										// into the agenda at the appropriate place
+										
+	/**public agendaState ucs(String start, String goal){
+	
+		Vector<String> visited = new Vector<String>(0,0);
+		agendaState position = new agendaState(start);
+		agendaState smallest = new agendaState(start);
+		
+		agenda.add(position);
+		visited.add(position.currentNode);
+		
+		position = agenda.lastElement();
+		while(agenda != null){
+			
+			
+			if(position.currentNode.equals(goal))return position;
+			
+			agendaState smallest = new agendaState(start);
+			for(agendaState state : expand(position)){
+				if(smallest.costSoFar == 0) smallest = state;
+				if(visited.contains(smallest.currentNode)){ continue;}
+				else{ visited.add(smallest.currentNode);
+						agenda.add(smallest); }
+				if(smallest.costSoFar >= state.costSoFar) smallest = state;
+			}
+			position = smallest;
+			/**for(agendaState state : expand(position)){
+				
+				if(position.costSoFar == 0) position = state;
+				
+				if(visited.contains(position.currentNode)){
+					//position = null;
+					continue;
+				}else
+				if(position.costSoFar >= state.costSoFar){ 
+					position = state; 
+					visited.add(position.currentNode);
+					continue;
+				}
+				System.out.println(position.currentNode);
+				
+			}
+			
+			System.out.println(position.currentNode);
+			if(visited.contains(position.currentNode)){
+				agenda.remove(agenda.lastElement());
+			}
+		}
+		return null;
+	}*/
+	
+	public agendaState bucs(String start, String goal){
+	
+		agenda = new Vector<agendaState>( 0, 0);
+		Vector<String> visited = new Vector<String>(0,0);
+		agendaState smallest = new agendaState(start);
+		
+		agenda.add(smallest);
+		visited.add(smallest.currentNode);
+		
+		while(agenda != null){
+			Vector<agendaState> temp = agenda;
+			if(smallest.currentNode.equals(goal)) return smallest;
+			
+			for(agendaState item:expand(smallest)){
+				agenda.add(item);
+			}
+			smallest = null;
+			for(agendaState state:agenda){
+				if(visited.contains(state.currentNode))continue;
+				if(smallest == null) smallest = state;
+				if(state.costSoFar < smallest.costSoFar){
+					smallest = state;
+				}
+			}
+			//System.out.println(smallest.currentNode);
+			visited.add(smallest.currentNode);
+		}
+		return null;
+	}
+	
+	
+	public agendaState ucs(String start, String goal){
+	
+		agenda = new Vector<agendaState>( 0, 0);
+		Vector<String> visited = new Vector<String>(0,0);
+		agendaState smallest = new agendaState(start);
+		Vector<agendaState> possibilities = new Vector<agendaState>( 0, 0);
+		boolean makesure = true;
+		
+		agenda.add(smallest);
+		visited.add(smallest.currentNode);
+		
+		while(agenda != null){
+			
+			if(smallest.currentNode.equals(goal)) return smallest;
+			
+			//System.out.println(smallest.currentNode);
+			agenda.addAll(expand(smallest));
+			smallest = null;
+			for(agendaState state:agenda){
+				if(visited.contains(state.currentNode))continue;
+				if(smallest == null) smallest = state;
+				if(state.costSoFar < smallest.costSoFar){
+					smallest = state;
+				}
+			}
+			//System.out.println(smallest.currentNode);
+			visited.add(smallest.currentNode);
+		}
+		return null;
+		
+	}
+	
+	public Vector<agendaState> arrange(Vector<agendaState> unsorted){
+	
+		Vector<agendaState> returnVector = new Vector<agendaState>(0,0);
+		int i=0;
+		int[] numbers = new int[unsorted.size()];
+		for (agendaState unsort: unsorted){
+			numbers[i] = unsort.costSoFar;
+			i++;
+		}
+		
+		Arrays.sort(numbers);
+		for(int j=0; j<=numbers.length;j++){
+			for (agendaState item : unsorted){
+				if (item.costSoFar == numbers[j]){
+					returnVector.add(item);
+					unsorted.remove(item);
+					break;
+				}
+			}
+		}
+		
+		return returnVector;
+	}
 
 	// put any other private methods you write here
 
