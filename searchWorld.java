@@ -13,6 +13,10 @@ public interface searchWorld<Label,Operator>
         public Vector<Operator> operators( Label start );
 
 	public int cost( Label start, Label end );
+	
+	public int costSoFar( Vector<Operator> pairs );
+	
+	public boolean pairExist(Label station, Label line);
 
 }
 

@@ -34,7 +34,30 @@ public class agenda<World extends searchWorld<String,opPair>>
 										// and then apply them. In the current
 										// design, the operator type is opPair.
 										// don't forget to update expansionSteps.
-										
+	private Vector<agendaState> expandx( agendaState currentState){
+	
+		Vector<agendaState> expandedStates = new Vector<agendaState>( 0, 0);
+		
+		for(opPair operator : worldDescription.operators(currentState.currentNode)){
+			Vector<opPair> path = new Vector<opPair>( 0, 0);
+			
+			for(opPair paths : currentState.pathSoFar)
+				path.add(paths);
+				
+			path.add(operator);
+			
+			expandedStates.add(new agendaState(
+										operator.destination, 
+										worldDescription.costSoFar(path), 
+										path
+										));
+		}
+			
+		expansionSteps++;
+		Vector<tubeStep> map = worldDescription.map;
+		return expandedStates;
+	}
+	
 	private Vector<agendaState> expand( agendaState currentState){
 	
 		Vector<agendaState> expandedStates = new Vector<agendaState>( 0, 0);
@@ -142,86 +165,6 @@ public class agenda<World extends searchWorld<String,opPair>>
 	// public agendaState ucs( String start, String goal )			// use the expand method to compute the
 										// next possible states and insert them
 										// into the agenda at the appropriate place
-										
-	/**public agendaState ucs(String start, String goal){
-	
-		Vector<String> visited = new Vector<String>(0,0);
-		agendaState position = new agendaState(start);
-		agendaState smallest = new agendaState(start);
-		
-		agenda.add(position);
-		visited.add(position.currentNode);
-		
-		position = agenda.lastElement();
-		while(agenda != null){
-			
-			
-			if(position.currentNode.equals(goal))return position;
-			
-			agendaState smallest = new agendaState(start);
-			for(agendaState state : expand(position)){
-				if(smallest.costSoFar == 0) smallest = state;
-				if(visited.contains(smallest.currentNode)){ continue;}
-				else{ visited.add(smallest.currentNode);
-						agenda.add(smallest); }
-				if(smallest.costSoFar >= state.costSoFar) smallest = state;
-			}
-			position = smallest;
-			/**for(agendaState state : expand(position)){
-				
-				if(position.costSoFar == 0) position = state;
-				
-				if(visited.contains(position.currentNode)){
-					//position = null;
-					continue;
-				}else
-				if(position.costSoFar >= state.costSoFar){ 
-					position = state; 
-					visited.add(position.currentNode);
-					continue;
-				}
-				System.out.println(position.currentNode);
-				
-			}
-			
-			System.out.println(position.currentNode);
-			if(visited.contains(position.currentNode)){
-				agenda.remove(agenda.lastElement());
-			}
-		}
-		return null;
-	}*/
-	
-	public agendaState bucs(String start, String goal){
-	
-		agenda = new Vector<agendaState>( 0, 0);
-		Vector<String> visited = new Vector<String>(0,0);
-		agendaState smallest = new agendaState(start);
-		
-		agenda.add(smallest);
-		visited.add(smallest.currentNode);
-		
-		while(agenda != null){
-			Vector<agendaState> temp = agenda;
-			if(smallest.currentNode.equals(goal)) return smallest;
-			
-			for(agendaState item:expand(smallest)){
-				agenda.add(item);
-			}
-			smallest = null;
-			for(agendaState state:agenda){
-				if(visited.contains(state.currentNode))continue;
-				if(smallest == null) smallest = state;
-				if(state.costSoFar < smallest.costSoFar){
-					smallest = state;
-				}
-			}
-			//System.out.println(smallest.currentNode);
-			visited.add(smallest.currentNode);
-		}
-		return null;
-	}
-	
 	
 	public agendaState ucs(String start, String goal){
 	
@@ -249,6 +192,40 @@ public class agenda<World extends searchWorld<String,opPair>>
 				}
 			}
 			//System.out.println(smallest.currentNode);
+			visited.add(smallest.currentNode);
+		}
+		return null;
+		
+	}
+	
+	public agendaState ucsx(String start, String goal){
+	
+		agenda = new Vector<agendaState>( 0, 0);
+		Vector<String> visited = new Vector<String>(0,0);
+		agendaState smallest = new agendaState(start);
+		Vector<agendaState> possibilities = new Vector<agendaState>( 0, 0);
+		boolean makesure = true;
+		
+		agenda.add(smallest);
+		visited.add(smallest.currentNode);
+		
+		while(agenda != null){
+			
+			if(smallest.currentNode.equals(goal)) return smallest;
+			
+			//System.out.println(smallest.currentNode);
+			agenda.addAll(expandx(smallest));
+			agendaState previous = smallest;
+			smallest = null;
+			for(agendaState state:agenda){
+				if(visited.contains(state.currentNode))continue;
+				if(smallest == null) smallest = state;
+				if(state.costSoFar < smallest.costSoFar){
+					smallest = state;
+				}
+				
+			}
+			//System.out.println(smallest.costSoFar);
 			visited.add(smallest.currentNode);
 		}
 		return null;

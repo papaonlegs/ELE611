@@ -25,6 +25,10 @@ public class tubeSearch
 			result = agenda.ucs( args[0], args[1] );		// call the bfs method
 
 			System.out.println( "UCS Result:\n" + tubeMap.routeString( result.pathSoFar ) + "at cost " + result.costSoFar+ "\nExpanded " + agenda.expansionSteps + " nodes.\n========\n"  ); // output results
+			
+			result = agenda.ucsx( args[0], args[1] );		// call the bfs method
+
+			System.out.println( "UCSx Result:\n" + tubeMap.routeString( result.pathSoFar ) + "at cost " + result.costSoFar+ "\nExpanded " + agenda.expansionSteps + " nodes.\n========\n"  ); // output results
 
 			result = agenda.dfs( args[0], args[1] );		// call the ucs method
 

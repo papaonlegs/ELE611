@@ -400,6 +400,39 @@ public class tubeMap implements searchWorld<String,opPair>
 		return operators;
 	}
 
+	public int heuristicCostSoFar( Vector<opPair> ops )
+	{
+		
+		int returncost = 0;
+		tubeStep mathPair = null;
+		for (tubeStep steps : map){
+			for (opPair op : ops){
+				if(mathPair == null){
+					mathPair = steps;
+					continue;
+				}
+				if(mathPair.start.equals(op.destination)) continue;
+				if(op.destination.equals(steps.start) && op.tubeLine.equals(steps.line)){
+					if(!mathPair.zone.equals(steps.zone)) returncost+=1;
+					returncost += steps.time; break;
+				}
+			}
+		}
+		return returncost;
+	}
+	
+	public int costSoFar( Vector<opPair> ops )
+	{
+		
+		int returncost = 0;
+		for (tubeStep steps : map){
+			for (opPair op : ops){
+				if(op.destination.equals(steps.start) && op.tubeLine.equals(steps.line)){ returncost += steps.time; break;}
+			}
+		}
+		return returncost;
+	}
+	
 	public int cost( String start, String end ) // given a start and an end station, return the average time between them
 	{
                 for ( tubeStep possibleNode : map )
@@ -435,6 +468,15 @@ public class tubeMap implements searchWorld<String,opPair>
 				answer = answer + "via the " + pathNode.tubeLine + " line to " + pathNode.destination + "\n" ;
                 return answer;
         }
+		
+		public boolean pairExist(String station, String tubeLine){
+			for (tubeStep pair : map){
+				if(pair.start.equals(station) && pair.line.equals(tubeLine) ||
+				   pair.end.equals(station) && pair.line.equals(tubeLine)) return true;
+			}
+			
+			return false;
+		}
 
 	public boolean exists( String station )	// check that a station exists on the map (for error checking)
 	{
