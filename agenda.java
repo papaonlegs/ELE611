@@ -214,8 +214,8 @@ public class agenda<World extends searchWorld<String,opPair>>
 		while(agenda != null){
 			
 			if(smallest.currentNode.equals(goal)) return smallest;
-			smallest.costSoFar += heuristicCostSoFar(smallest, goal);
-			agenda.addAll(expand(smallest));
+			//smallest.costSoFar += heuristicCostSoFar(smallest, goal);
+			agenda.addAll(heuristicCostSoFar(expand(smallest)));
 			agendaState previous = smallest;
 			smallest = null;
 			for(agendaState state:agenda){
@@ -262,8 +262,14 @@ public class agenda<World extends searchWorld<String,opPair>>
 		}
 		return ags;
 	}
-
-	public int heuristicCostSoFar(Vector<agendaState> ags, String goal){
+	/** heuristicCostSoFar function that adds a weighting
+	*	whenever the search moves further from the goal zone.
+	*	If the difference between the previous zone to the goal zone
+	*	is less than the current zone to the goal zone it is penalised.
+	*	This also serves to try to keep the search in the goal zone 
+	*	once it reaches there. Good example : Stratford to Bermondsey
+	*/
+	public Vector<agendaState> heuristicCostSoFar(Vector<agendaState> ags, String goal){
 		
 		int prevMath;
 		int nowMath;
@@ -281,8 +287,6 @@ public class agenda<World extends searchWorld<String,opPair>>
 			prev = null;
 			now = null;
 			for (opPair op : ag.pathSoFar){
-				//if(worldDescription.tubeZones(op.destination) == null) continue;
-				//if(worldDescription.tubeZones(op.destination).firstElement().equals(worldDescription.tubeZones(goal).firstElement())) continue;
 				if (prev == null){ prev = worldDescription.tubeZones(op.destination); continue;
 				}else if(now != null){ prev = worldDescription.tubeZones(now.destination);}
 			
@@ -293,7 +297,7 @@ public class agenda<World extends searchWorld<String,opPair>>
 				prevMath = Integer.valueOf(prev.firstElement().charAt(0));
 				nowMath = Integer.valueOf(worldDescription.tubeZones(op.destination).firstElement().charAt(0));
 
-				if(Math.abs(prevMath - destMath) < Math.abs(nowMath - destMath)) addWeight = true;
+				if(Math.abs(prevMath - destMath) < Math.abs(nowMath - destMath)) addWeight = true; //Penalise it for going further away from target zone
 				now = op;
 				if(addWeight) someRet+=weighting;
 				addWeight = true;
