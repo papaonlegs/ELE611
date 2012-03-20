@@ -400,18 +400,6 @@ public class tubeMap implements searchWorld<String,opPair>
 		return operators;
 	}
 	
-	public int costSoFar( Vector<opPair> ops )
-	{
-		
-		int returncost = 0;
-		for (tubeStep steps : map){
-			for (opPair op : ops){
-				if(op.destination.equals(steps.start) && op.tubeLine.equals(steps.line)){ returncost += steps.time; break;}
-			}
-		}
-		return returncost;
-	}
-	
 	public int cost( String start, String end ) // given a start and an end station, return the average time between them
 	{
                 for ( tubeStep possibleNode : map )
