@@ -13,10 +13,12 @@ public interface searchWorld<Label,Operator>
         public Vector<Operator> operators( Label start );
 
 	public int cost( Label start, Label end );
+
+	public Vector<Label> tubeZones( Label station ); //remove
 	
 	public int costSoFar( Vector<Operator> pairs ); // remove
 	
-	public boolean pairExist(Label station, Label line); //remove
+	public boolean pairExist( Label station, Label line ); //remove
 
 }
 

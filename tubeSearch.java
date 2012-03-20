@@ -22,15 +22,19 @@ public class tubeSearch
 
 			System.out.println( "BFS Result:\n" + tubeMap.routeString( result.pathSoFar ) + "at cost " + result.costSoFar + "\nExpanded " + agenda.expansionSteps + " nodes.\n========\n" ); // output results
 
-			result = agenda.ucs( args[0], args[1] );		// call the bfs method
+			result = agenda.ucs( args[0], args[1] );		// call the UCS method
 
 			System.out.println( "UCS Result:\n" + tubeMap.routeString( result.pathSoFar ) + "at cost " + result.costSoFar+ "\nExpanded " + agenda.expansionSteps + " nodes.\n========\n"  ); // output results
 			
-			result = agenda.ucsx( args[0], args[1] );		// call the bfs method
+			result = agenda.ucsx( args[0], args[1] );		// call the UCSx method
 
 			System.out.println( "UCSx Result:\n" + tubeMap.routeString( result.pathSoFar ) + "at cost " + result.costSoFar+ "\nExpanded " + agenda.expansionSteps + " nodes.\n========\n"  ); // output results
+			
+			result = agenda.heuristicUcs( args[0], args[1] );		// call the heuristicUCS method
 
-			result = agenda.dfs( args[0], args[1] );		// call the ucs method
+			System.out.println( "HeuristicUCS Result:\n" + tubeMap.routeString( result.pathSoFar ) + "at cost " + result.costSoFar+ "\nExpanded " + agenda.expansionSteps + " nodes.\n========\n"  ); // output results
+
+			result = agenda.dfs( args[0], args[1] );		// call the dfs method
 
 			System.out.println( "DFS Result:\n" + tubeMap.routeString( result.pathSoFar ) + "at cost " + result.costSoFar+ "\nExpanded " + agenda.expansionSteps + " nodes."  ); // output results
 		}

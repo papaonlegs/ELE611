@@ -34,29 +34,6 @@ public class agenda<World extends searchWorld<String,opPair>>
 										// and then apply them. In the current
 										// design, the operator type is opPair.
 										// don't forget to update expansionSteps.
-	private Vector<agendaState> expandx( agendaState currentState){
-	
-		Vector<agendaState> expandedStates = new Vector<agendaState>( 0, 0);
-		
-		for(opPair operator : worldDescription.operators(currentState.currentNode)){
-			Vector<opPair> path = new Vector<opPair>( 0, 0);
-			
-			for(opPair paths : currentState.pathSoFar)
-				path.add(paths);
-				
-			path.add(operator);
-			
-			expandedStates.add(new agendaState(
-										operator.destination, 
-										worldDescription.costSoFar(path), 
-										path
-										));
-		}
-			
-		expansionSteps++;
-		Vector<tubeStep> map = worldDescription.map;
-		return expandedStates;
-	}
 	
 	private Vector<agendaState> expand( agendaState currentState){
 	
@@ -213,8 +190,43 @@ public class agenda<World extends searchWorld<String,opPair>>
 			
 			if(smallest.currentNode.equals(goal)) return smallest;
 			
+			smallest.costSoFar += costSoFar(smallest);
 			//System.out.println(smallest.currentNode);
-			agenda.addAll(expandx(smallest));
+			agenda.addAll(expand(smallest));
+			agendaState previous = smallest;
+			smallest = null;
+			for(agendaState state:agenda){
+				if(visited.contains(state.currentNode))continue;
+				if(smallest == null) smallest = state;
+				if(state.costSoFar < smallest.costSoFar){
+					smallest = state;
+				}
+				
+			}
+			//System.out.println(smallest.costSoFar);
+			visited.add(smallest.currentNode);
+		}
+		return null;
+		
+	}
+
+	public agendaState heuristicUcs(String start, String goal){
+	
+		agenda = new Vector<agendaState>( 0, 0);
+		Vector<String> visited = new Vector<String>(0,0);
+		agendaState smallest = new agendaState(start);
+		Vector<agendaState> possibilities = new Vector<agendaState>( 0, 0);
+		boolean makesure = true;
+		
+		agenda.add(smallest);
+		visited.add(smallest.currentNode);
+		
+		while(agenda != null){
+			
+			if(smallest.currentNode.equals(goal)) return smallest;
+			smallest.costSoFar += heuristicCostSoFar(smallest, goal);	
+			//System.out.println(smallest.currentNode);
+			agenda.addAll(expand(smallest));
 			agendaState previous = smallest;
 			smallest = null;
 			for(agendaState state:agenda){
@@ -232,33 +244,72 @@ public class agenda<World extends searchWorld<String,opPair>>
 		
 	}
 	
-	public int heuristicCostSoFar(agendaState ag, String destination){
+	public int costSoFar(agendaState ag){
 
-		Vector<agendaState> returnAgenda = new 
+		String prev = null;
+		int someRet = 0;
+		int weighting = 1;
+		boolean addWeight = true;
+
+		for(opPair op : ag.pathSoFar){
+			//System.out.println(op.destination);
+			if(prev == null){
+				prev = op.tubeLine; continue;
+			}
+			//System.out.println(prev+"and"+op.tubeLine);
+			if(op.tubeLine.equals(prev)) addWeight = false;
+			if(addWeight) someRet += weighting;
+			prev = op.tubeLine;
+			addWeight = true;
+		}
+		//System.out.println(someRet);
+		return someRet;
 	}
 
-	public Vector<agendaState> arrange(Vector<agendaState> unsorted){
-	
-		Vector<agendaState> returnVector = new Vector<agendaState>(0,0);
-		int i=0;
-		int[] numbers = new int[unsorted.size()];
-		for (agendaState unsort: unsorted){
-			numbers[i] = unsort.costSoFar;
-			i++;
-		}
+	public int heuristicCostSoFar(agendaState ag, String goal){
 		
-		Arrays.sort(numbers);
-		for(int j=0; j<=numbers.length;j++){
-			for (agendaState item : unsorted){
-				if (item.costSoFar == numbers[j]){
-					returnVector.add(item);
-					unsorted.remove(item);
-					break;
-				}
+		int prevMath;
+		int nowMath;
+		int destMath;
+		int from;
+		int to;
+			
+		//if(worldDescription.tubeZones(goal).firstElement() instanceof Character) destMath = Character.getNumericValue(worldDescription.tubeZones(goal).firstElement());
+		 destMath = Integer.valueOf(worldDescription.tubeZones(goal).firstElement().charAt(0));
+		
+		int someRet = 0;
+		int weighting = 1;
+		boolean addWeight = true;
+		Vector<String> goals = worldDescription.tubeZones(goal);
+		Vector<String> prev = null;
+		opPair now = null;
+		for (opPair op : ag.pathSoFar){
+			//System.out.println(op.destination);
+			if(worldDescription.tubeZones(op.destination) == null) continue;
+			if(worldDescription.tubeZones(op.destination).firstElement().equals(worldDescription.tubeZones(goal).firstElement())) continue;
+			if (prev == null){ prev = worldDescription.tubeZones(op.destination); continue;
+			}else if(now != null){ prev = worldDescription.tubeZones(now.destination);}
+			//Vector<String> that = worldDescription.tubeZones(op.destination);
+			
+			for(String zone : worldDescription.tubeZones(op.destination)){
+				if(prev.contains(zone)) addWeight = false;
+
 			}
+			//if(worldDescription.tubeZones(prev.destination).firstElement() instanceof Character) prevMath = Character.getNumericValue(worldDescription.tubeZones(prev.destination));
+			 prevMath = Integer.valueOf(prev.firstElement().charAt(0));
+			 //catch(Exception e){prevMath = }
+
+			//if(worldDescription.tubeZones(op.destination).firstElement() instanceof Character) nowMath = Character.getNumericValue(worldDescription.tubeZones(op.destination));
+			 nowMath = Integer.valueOf(worldDescription.tubeZones(op.destination).firstElement().charAt(0));
+			//System.out.println(nowMath);
+
+			if(Math.abs(prevMath - destMath) < Math.abs(nowMath - destMath)) addWeight = true;
+			now = op;
+			if(addWeight) someRet+=weighting;
+			addWeight = true;
 		}
-		
-		return returnVector;
+		//System.out.println(someRet);
+		return someRet;
 	}
 
 	// put any other private methods you write here
