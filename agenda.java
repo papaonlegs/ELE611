@@ -232,6 +232,11 @@ public class agenda<World extends searchWorld<String,opPair>>
 		
 	}
 	
+	public int heuristicCostSoFar(agendaState ag, String destination){
+
+		Vector<agendaState> returnAgenda = new 
+	}
+
 	public Vector<agendaState> arrange(Vector<agendaState> unsorted){
 	
 		Vector<agendaState> returnVector = new Vector<agendaState>(0,0);

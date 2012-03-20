@@ -14,9 +14,9 @@ public interface searchWorld<Label,Operator>
 
 	public int cost( Label start, Label end );
 	
-	public int costSoFar( Vector<Operator> pairs );
+	public int costSoFar( Vector<Operator> pairs ); // remove
 	
-	public boolean pairExist(Label station, Label line);
+	public boolean pairExist(Label station, Label line); //remove
 
 }
 

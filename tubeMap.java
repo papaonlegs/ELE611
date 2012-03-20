@@ -399,27 +399,6 @@ public class tubeMap implements searchWorld<String,opPair>
 
 		return operators;
 	}
-
-	public int heuristicCostSoFar( Vector<opPair> ops )
-	{
-		
-		int returncost = 0;
-		tubeStep mathPair = null;
-		for (tubeStep steps : map){
-			for (opPair op : ops){
-				if(mathPair == null){
-					mathPair = steps;
-					continue;
-				}
-				if(mathPair.start.equals(op.destination)) continue;
-				if(op.destination.equals(steps.start) && op.tubeLine.equals(steps.line)){
-					if(!mathPair.zone.equals(steps.zone)) returncost+=1;
-					returncost += steps.time; break;
-				}
-			}
-		}
-		return returncost;
-	}
 	
 	public int costSoFar( Vector<opPair> ops )
 	{
