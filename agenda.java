@@ -263,7 +263,7 @@ public class agenda<World extends searchWorld<String,opPair>>
 		return ags;
 	}
 
-	public int heuristicCostSoFar(agendaState ag, String goal){
+	public int heuristicCostSoFar(Vector<agendaState> ags, String goal){
 		
 		int prevMath;
 		int nowMath;
@@ -276,25 +276,30 @@ public class agenda<World extends searchWorld<String,opPair>>
 		boolean addWeight = true;
 		Vector<String> prev = null;
 		opPair now = null;
-		for (opPair op : ag.pathSoFar){
-			if(worldDescription.tubeZones(op.destination) == null) continue;
-			if(worldDescription.tubeZones(op.destination).firstElement().equals(worldDescription.tubeZones(goal).firstElement())) continue;
-			if (prev == null){ prev = worldDescription.tubeZones(op.destination); continue;
-			}else if(now != null){ prev = worldDescription.tubeZones(now.destination);}
+		for(agendaState ag : ags){
+			someRet = 0;
+			prev = null;
+			now = null;
+			for (opPair op : ag.pathSoFar){
+				//if(worldDescription.tubeZones(op.destination) == null) continue;
+				//if(worldDescription.tubeZones(op.destination).firstElement().equals(worldDescription.tubeZones(goal).firstElement())) continue;
+				if (prev == null){ prev = worldDescription.tubeZones(op.destination); continue;
+				}else if(now != null){ prev = worldDescription.tubeZones(now.destination);}
 			
-			for(String zone : worldDescription.tubeZones(op.destination)){
-				if(prev.contains(zone)) addWeight = false;
+				for(String zone : worldDescription.tubeZones(op.destination)){
+					if(prev.contains(zone)) addWeight = false;
 
+				}
+				prevMath = Integer.valueOf(prev.firstElement().charAt(0));
+				nowMath = Integer.valueOf(worldDescription.tubeZones(op.destination).firstElement().charAt(0));
+
+				if(Math.abs(prevMath - destMath) < Math.abs(nowMath - destMath)) addWeight = true;
+				now = op;
+				if(addWeight) someRet+=weighting;
+				addWeight = true;
 			}
-			prevMath = Integer.valueOf(prev.firstElement().charAt(0));
-			nowMath = Integer.valueOf(worldDescription.tubeZones(op.destination).firstElement().charAt(0));
-
-			if(Math.abs(prevMath - destMath) < Math.abs(nowMath - destMath)) addWeight = true;
-			now = op;
-			if(addWeight) someRet+=weighting;
-			addWeight = true;
+			ag.costSoFar += someRet;
 		}
-		return someRet;
 	}
 
 	// put any other private methods you write here
