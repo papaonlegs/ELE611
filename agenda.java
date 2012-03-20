@@ -42,16 +42,14 @@ public class agenda<World extends searchWorld<String,opPair>>
 		for(opPair operator : worldDescription.operators(currentState.currentNode)){
 			Vector<opPair> path = new Vector<opPair>( 0, 0);
 			
-			for(opPair paths : currentState.pathSoFar)
-				path.add(paths);
-				
+			path.addAll(currentState.pathSoFar);
 			path.add(operator);
 			
 			expandedStates.add(new agendaState(
-										operator.destination, 
-										currentState.costSoFar + worldDescription.cost(currentState.currentNode, operator.destination), 
-										path
-										));
+							operator.destination, 
+							currentState.costSoFar + worldDescription.cost(currentState.currentNode, operator.destination), 
+							path
+							));
 		}
 			
 		expansionSteps++;
@@ -73,13 +71,11 @@ public class agenda<World extends searchWorld<String,opPair>>
 		
 		while(!agenda.isEmpty()){
 		
-			position = (agendaState) agenda.lastElement();
+			position = agenda.lastElement();
 			
 			if(position.currentNode.equals(goal))return position;
 			
-			Vector<agendaState> possibilities = expand(position);
-			
-			for(agendaState possibility : possibilities){
+			for(agendaState possibility : expand(position)){
 				if(visited.contains( possibility.currentNode)){ 
 					position = null; 
 					continue;
@@ -109,6 +105,7 @@ public class agenda<World extends searchWorld<String,opPair>>
 		
 		agenda = new Vector<agendaState>( 0, 0);
 		Vector<String> visited = new Vector<String>(0,0);
+		Vector<agendaState> temps = new Vector<agendaState>(0,0);
 		agendaState position = new agendaState(start);
 		
 		agenda.add(position);
@@ -116,7 +113,7 @@ public class agenda<World extends searchWorld<String,opPair>>
 		
 		while(agenda != null){
 		
-			Vector<agendaState> temps = agenda;
+			temps = agenda;
 			agenda = new Vector<agendaState>(0,0);
 			
 			for(agendaState temp : temps){
@@ -149,7 +146,6 @@ public class agenda<World extends searchWorld<String,opPair>>
 		Vector<String> visited = new Vector<String>(0,0);
 		agendaState smallest = new agendaState(start);
 		Vector<agendaState> possibilities = new Vector<agendaState>( 0, 0);
-		boolean makesure = true;
 		
 		agenda.add(smallest);
 		visited.add(smallest.currentNode);
@@ -158,7 +154,6 @@ public class agenda<World extends searchWorld<String,opPair>>
 			
 			if(smallest.currentNode.equals(goal)) return smallest;
 			
-			//System.out.println(smallest.currentNode);
 			agenda.addAll(expand(smallest));
 			smallest = null;
 			for(agendaState state:agenda){
@@ -168,7 +163,6 @@ public class agenda<World extends searchWorld<String,opPair>>
 					smallest = state;
 				}
 			}
-			//System.out.println(smallest.currentNode);
 			visited.add(smallest.currentNode);
 		}
 		return null;
@@ -181,7 +175,6 @@ public class agenda<World extends searchWorld<String,opPair>>
 		Vector<String> visited = new Vector<String>(0,0);
 		agendaState smallest = new agendaState(start);
 		Vector<agendaState> possibilities = new Vector<agendaState>( 0, 0);
-		boolean makesure = true;
 		
 		agenda.add(smallest);
 		visited.add(smallest.currentNode);
@@ -190,9 +183,8 @@ public class agenda<World extends searchWorld<String,opPair>>
 			
 			if(smallest.currentNode.equals(goal)) return smallest;
 			
-			smallest.costSoFar += costSoFar(smallest);
-			//System.out.println(smallest.currentNode);
-			agenda.addAll(expand(smallest));
+			//smallest.costSoFar += costSoFar(smallest);
+			agenda.addAll(costSoFar(expand(smallest)));
 			agendaState previous = smallest;
 			smallest = null;
 			for(agendaState state:agenda){
@@ -203,7 +195,6 @@ public class agenda<World extends searchWorld<String,opPair>>
 				}
 				
 			}
-			//System.out.println(smallest.costSoFar);
 			visited.add(smallest.currentNode);
 		}
 		return null;
@@ -216,7 +207,6 @@ public class agenda<World extends searchWorld<String,opPair>>
 		Vector<String> visited = new Vector<String>(0,0);
 		agendaState smallest = new agendaState(start);
 		Vector<agendaState> possibilities = new Vector<agendaState>( 0, 0);
-		boolean makesure = true;
 		
 		agenda.add(smallest);
 		visited.add(smallest.currentNode);
@@ -224,8 +214,7 @@ public class agenda<World extends searchWorld<String,opPair>>
 		while(agenda != null){
 			
 			if(smallest.currentNode.equals(goal)) return smallest;
-			smallest.costSoFar += heuristicCostSoFar(smallest, goal);	
-			//System.out.println(smallest.currentNode);
+			smallest.costSoFar += heuristicCostSoFar(smallest, goal);
 			agenda.addAll(expand(smallest));
 			agendaState previous = smallest;
 			smallest = null;
@@ -237,33 +226,41 @@ public class agenda<World extends searchWorld<String,opPair>>
 				}
 				
 			}
-			//System.out.println(smallest.costSoFar);
 			visited.add(smallest.currentNode);
 		}
 		return null;
 		
 	}
 	
-	public int costSoFar(agendaState ag){
+	/** costSoFar function that adds a weighting
+	*	whenever there is a change in tubeLine.
+	*	This is only fair as there is delay whenever
+	*	one changes lines. The weighting can be 
+	*	finetuned to get better results depending
+	*	on overall system.
+	*/
+
+	public Vector<agendaState> costSoFar(Vector<agendaState> ags){
 
 		String prev = null;
 		int someRet = 0;
-		int weighting = 1;
+		int weighting = 1; //Weighting that can be finetuned
 		boolean addWeight = true;
-
-		for(opPair op : ag.pathSoFar){
-			//System.out.println(op.destination);
-			if(prev == null){
-				prev = op.tubeLine; continue;
+		for(agendaState ag : ags){
+			prev = null;
+			someRet = 0;
+			for(opPair op : ag.pathSoFar){
+				if(prev == null){
+					prev = op.tubeLine; continue;
+				}
+				if(op.tubeLine.equals(prev)) addWeight = false;
+				if(addWeight) someRet += weighting;
+				prev = op.tubeLine;
+				addWeight = true;
 			}
-			//System.out.println(prev+"and"+op.tubeLine);
-			if(op.tubeLine.equals(prev)) addWeight = false;
-			if(addWeight) someRet += weighting;
-			prev = op.tubeLine;
-			addWeight = true;
+			ag.costSoFar += someRet;
 		}
-		//System.out.println(someRet);
-		return someRet;
+		return ags;
 	}
 
 	public int heuristicCostSoFar(agendaState ag, String goal){
@@ -271,44 +268,32 @@ public class agenda<World extends searchWorld<String,opPair>>
 		int prevMath;
 		int nowMath;
 		int destMath;
-		int from;
-		int to;
 			
-		//if(worldDescription.tubeZones(goal).firstElement() instanceof Character) destMath = Character.getNumericValue(worldDescription.tubeZones(goal).firstElement());
-		 destMath = Integer.valueOf(worldDescription.tubeZones(goal).firstElement().charAt(0));
+		destMath = Integer.valueOf(worldDescription.tubeZones(goal).firstElement().charAt(0));
 		
 		int someRet = 0;
-		int weighting = 1;
+		int weighting = 1; //Weighting that can be finetuned
 		boolean addWeight = true;
-		Vector<String> goals = worldDescription.tubeZones(goal);
 		Vector<String> prev = null;
 		opPair now = null;
 		for (opPair op : ag.pathSoFar){
-			//System.out.println(op.destination);
 			if(worldDescription.tubeZones(op.destination) == null) continue;
 			if(worldDescription.tubeZones(op.destination).firstElement().equals(worldDescription.tubeZones(goal).firstElement())) continue;
 			if (prev == null){ prev = worldDescription.tubeZones(op.destination); continue;
 			}else if(now != null){ prev = worldDescription.tubeZones(now.destination);}
-			//Vector<String> that = worldDescription.tubeZones(op.destination);
 			
 			for(String zone : worldDescription.tubeZones(op.destination)){
 				if(prev.contains(zone)) addWeight = false;
 
 			}
-			//if(worldDescription.tubeZones(prev.destination).firstElement() instanceof Character) prevMath = Character.getNumericValue(worldDescription.tubeZones(prev.destination));
-			 prevMath = Integer.valueOf(prev.firstElement().charAt(0));
-			 //catch(Exception e){prevMath = }
-
-			//if(worldDescription.tubeZones(op.destination).firstElement() instanceof Character) nowMath = Character.getNumericValue(worldDescription.tubeZones(op.destination));
-			 nowMath = Integer.valueOf(worldDescription.tubeZones(op.destination).firstElement().charAt(0));
-			//System.out.println(nowMath);
+			prevMath = Integer.valueOf(prev.firstElement().charAt(0));
+			nowMath = Integer.valueOf(worldDescription.tubeZones(op.destination).firstElement().charAt(0));
 
 			if(Math.abs(prevMath - destMath) < Math.abs(nowMath - destMath)) addWeight = true;
 			now = op;
 			if(addWeight) someRet+=weighting;
 			addWeight = true;
 		}
-		//System.out.println(someRet);
 		return someRet;
 	}
 
