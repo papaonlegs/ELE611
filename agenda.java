@@ -29,11 +29,9 @@ public class agenda<World extends searchWorld<String,opPair>>
 		expansionSteps = 0;
 	}
 
-	// private Vector<agendaState> expand( agendaState currentState )		// given the current state, ask tubeMap
-										// for the operators that could apply
-										// and then apply them. In the current
-										// design, the operator type is opPair.
-										// don't forget to update expansionSteps.
+	/** expand gets operators from worldDescription
+	*	returns creates a Vector of possible agendaStates
+	*/
 	
 	private Vector<agendaState> expand( agendaState currentState){
 	
@@ -56,10 +54,10 @@ public class agenda<World extends searchWorld<String,opPair>>
 		return expandedStates;
 	}
 
-	// public agendaState dfs( String start, String goal )			// use the expand method to compute the
-										// next possible states and insert them
-										// into the agenda at the appropriate place.
-										// Use the specification in the lecture notes.
+	/** dfs calculates a path from start to goal
+	*	in a dept-first search manner and returns an agendaState
+	*	with details of path taken and cost etc
+	*/
 										
 	public agendaState dfs( String start, String goal ){
 	
@@ -97,9 +95,10 @@ public class agenda<World extends searchWorld<String,opPair>>
 		return null;
 	}
 
-	// public agendaState bfs( String start, String goal )			// use the expand method to compute the
-										// next possible states and insert them
-										// into the agenda at the appropriate place
+	/** bfs calculates a path from start to goal
+	*	in a breadth-first search manner and returns an agendaState
+	*	with details of path taken and cost etc
+	*/
 										
 	public agendaState bfs(String start, String goal){
 		
@@ -136,10 +135,10 @@ public class agenda<World extends searchWorld<String,opPair>>
 		
 	}
 
-	// public agendaState ucs( String start, String goal )			// use the expand method to compute the
-										// next possible states and insert them
-										// into the agenda at the appropriate place
-	
+	/** ucs calculates a path from start to goal
+	*	in a uniform-cost search manner and returns an agendaState
+	*	with details of path taken and cost etc
+	*/
 	public agendaState ucs(String start, String goal){
 	
 		agenda = new Vector<agendaState>( 0, 0);
@@ -168,6 +167,12 @@ public class agenda<World extends searchWorld<String,opPair>>
 		return null;
 		
 	}
+	
+	/** ucsx calculates a path from start to goal
+	*	in a uniform-cost search manner that takes
+	*	into account tubeline changes and returns an agendaState
+	*	with details of path taken and cost etc
+	*/
 	
 	public agendaState ucsx(String start, String goal){
 	
@@ -200,7 +205,14 @@ public class agenda<World extends searchWorld<String,opPair>>
 		return null;
 		
 	}
-
+	
+	/** heuristicUcs calculates a path from start to goal
+	*	in a uniform-cost search manner that knows about 
+	*	its target's zone and tweaks its search in accordance
+	*	to it. This returns an agendaState
+	*	with details of path taken and cost etc
+	*/
+	
 	public agendaState heuristicUcs(String start, String goal){
 	
 		agenda = new Vector<agendaState>( 0, 0);
@@ -262,6 +274,7 @@ public class agenda<World extends searchWorld<String,opPair>>
 		}
 		return ags;
 	}
+	
 	/** heuristicCostSoFar function that adds a weighting
 	*	whenever the search moves further from the goal zone.
 	*	If the difference between the previous zone to the goal zone
@@ -269,6 +282,7 @@ public class agenda<World extends searchWorld<String,opPair>>
 	*	This also serves to try to keep the search in the goal zone 
 	*	once it reaches there. Good example : Stratford to Bermondsey
 	*/
+	
 	public Vector<agendaState> heuristicCostSoFar(Vector<agendaState> ags, String goal){
 		
 		//Cast worldDescription as its same type in order to access tubeZones function
@@ -276,11 +290,15 @@ public class agenda<World extends searchWorld<String,opPair>>
 		int prevMath;
 		int nowMath;
 		int destMath;
-			
-		destMath = Integer.valueOf(worldDescriptio.tubeZones(goal).firstElement().charAt(0));
 		
+		//If goal zone happens to be null, then this is no longer heuristic search
+		try{
+			destMath = Integer.valueOf(worldDescriptio.tubeZones(goal).firstElement().charAt(0));
+		}catch(Exception e){
+			return costSoFar(ags);
+		}
 		int someRet = 0;
-		int weighting = 2; //Weighting that can be finetuned
+		int weighting = 1; //Weighting that can be finetuned
 		boolean addWeight = true;
 		Vector<String> prev = null;
 		opPair now = null;
@@ -289,6 +307,7 @@ public class agenda<World extends searchWorld<String,opPair>>
 			prev = null;
 			now = null;
 			for (opPair op : ag.pathSoFar){
+			
 				//Check to see if pair is valid and not equal to destination zone
 				if(worldDescriptio.tubeZones(op.destination) == null)continue; //Sometimes tubeZones returns null
 				if(worldDescriptio.tubeZones(op.destination).firstElement().equals(worldDescriptio.tubeZones(goal).firstElement())) continue;
@@ -308,9 +327,14 @@ public class agenda<World extends searchWorld<String,opPair>>
 				//Prepare zones for math
 				prevMath = Integer.valueOf(prev.firstElement().charAt(0));
 				nowMath = Integer.valueOf(worldDescriptio.tubeZones(op.destination).firstElement().charAt(0));
-
-				if(Math.abs(prevMath - destMath) < Math.abs(nowMath - destMath)) addWeight = true; //Penalise it for going further away from target zone
+				
+				//Penalise it for going further away from target zone
+				if(Math.abs(prevMath - destMath) < Math.abs(nowMath - destMath)) addWeight = true;
+				
+				//Mechanism to continue keeping record of previous zone
 				now = op;
+				
+				//Actual weighting is added here
 				if(addWeight) someRet+=weighting;
 				addWeight = true;
 			}
@@ -318,7 +342,5 @@ public class agenda<World extends searchWorld<String,opPair>>
 		}
 		return ags;
 	}
-
-	// put any other private methods you write here
 
 }
