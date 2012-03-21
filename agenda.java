@@ -215,7 +215,7 @@ public class agenda<World extends searchWorld<String,opPair>>
 			
 			if(smallest.currentNode.equals(goal)) return smallest;
 			//smallest.costSoFar += heuristicCostSoFar(smallest, goal);
-			agenda.addAll(heuristicCostSoFar(expand(smallest)));
+			agenda.addAll(heuristicCostSoFar(expand(smallest), goal));
 			agendaState previous = smallest;
 			smallest = null;
 			for(agendaState state:agenda){
@@ -271,14 +271,16 @@ public class agenda<World extends searchWorld<String,opPair>>
 	*/
 	public Vector<agendaState> heuristicCostSoFar(Vector<agendaState> ags, String goal){
 		
+		//Cast worldDescription as its same type in order to access tubeZones function
+		tubeMap worldDescriptio = (tubeMap) worldDescription;
 		int prevMath;
 		int nowMath;
 		int destMath;
 			
-		destMath = Integer.valueOf(worldDescription.tubeZones(goal).firstElement().charAt(0));
+		destMath = Integer.valueOf(worldDescriptio.tubeZones(goal).firstElement().charAt(0));
 		
 		int someRet = 0;
-		int weighting = 1; //Weighting that can be finetuned
+		int weighting = 2; //Weighting that can be finetuned
 		boolean addWeight = true;
 		Vector<String> prev = null;
 		opPair now = null;
@@ -287,15 +289,21 @@ public class agenda<World extends searchWorld<String,opPair>>
 			prev = null;
 			now = null;
 			for (opPair op : ag.pathSoFar){
-				if (prev == null){ prev = worldDescription.tubeZones(op.destination); continue;
-				}else if(now != null){ prev = worldDescription.tubeZones(now.destination);}
-			
-				for(String zone : worldDescription.tubeZones(op.destination)){
+				//Check to see if pair is valid and not equal to destination zone
+				if(worldDescriptio.tubeZones(op.destination) == null)continue;
+				if(worldDescriptio.tubeZones(op.destination).firstElement().equals(worldDescriptio.tubeZones(goal).firstElement())) continue;
+				
+				if (prev == null){ 
+					prev = worldDescriptio.tubeZones(op.destination);
+					continue;
+				}else if(now != null)prev = worldDescriptio.tubeZones(now.destination);
+				
+				for(String zone : worldDescriptio.tubeZones(op.destination)){
 					if(prev.contains(zone)) addWeight = false;
 
 				}
 				prevMath = Integer.valueOf(prev.firstElement().charAt(0));
-				nowMath = Integer.valueOf(worldDescription.tubeZones(op.destination).firstElement().charAt(0));
+				nowMath = Integer.valueOf(worldDescriptio.tubeZones(op.destination).firstElement().charAt(0));
 
 				if(Math.abs(prevMath - destMath) < Math.abs(nowMath - destMath)) addWeight = true; //Penalise it for going further away from target zone
 				now = op;
@@ -304,6 +312,7 @@ public class agenda<World extends searchWorld<String,opPair>>
 			}
 			ag.costSoFar += someRet;
 		}
+		return ags;
 	}
 
 	// put any other private methods you write here
