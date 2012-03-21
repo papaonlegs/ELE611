@@ -290,18 +290,22 @@ public class agenda<World extends searchWorld<String,opPair>>
 			now = null;
 			for (opPair op : ag.pathSoFar){
 				//Check to see if pair is valid and not equal to destination zone
-				if(worldDescriptio.tubeZones(op.destination) == null)continue;
+				if(worldDescriptio.tubeZones(op.destination) == null)continue; //Sometimes tubeZones returns null
 				if(worldDescriptio.tubeZones(op.destination).firstElement().equals(worldDescriptio.tubeZones(goal).firstElement())) continue;
 				
+				//Mechanism to keep record of previous zone
 				if (prev == null){ 
 					prev = worldDescriptio.tubeZones(op.destination);
 					continue;
 				}else if(now != null)prev = worldDescriptio.tubeZones(now.destination);
 				
+				//Mechanism to keep from penalising if in same zone
 				for(String zone : worldDescriptio.tubeZones(op.destination)){
 					if(prev.contains(zone)) addWeight = false;
 
 				}
+				
+				//Prepare zones for math
 				prevMath = Integer.valueOf(prev.firstElement().charAt(0));
 				nowMath = Integer.valueOf(worldDescriptio.tubeZones(op.destination).firstElement().charAt(0));
 

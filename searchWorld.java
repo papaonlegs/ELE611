@@ -14,7 +14,6 @@ public interface searchWorld<Label,Operator>
 
 	public int cost( Label start, Label end );
 
-	//public Vector<Label> tubeZones( Label station ); //remove
 
 }
 
